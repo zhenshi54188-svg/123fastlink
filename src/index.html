@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>123FastLink - 123云盘秒传JSON生成器 - 支持123/夸克/天翼云盘在线秒传转存工具</title>
+  <meta name="description" content="123FastLink 免费在线生成123云盘、夸克网盘、天翼189云盘秒传JSON文件，支持加密分享链接解析，快速转存网盘资源到自己账号，无需下载上传。">
+  <meta name="keywords" content="123云盘秒传,夸克网盘秒传,天翼云盘秒传,网盘秒传,秒传JSON,网盘转存,123pan,quark,云盘工具">
+  <meta name="author" content="123FastLink">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://123.kkit.app/">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "123FastLink - 123云盘秒传JSON生成器"
+  }
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      min-height: 100vh; padding: 20px; 
+    }
+    .container { 
+      max-width: 900px; margin: 0 auto; background: white; 
+      border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+      padding: 40px; 
+    }
+    h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+    .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+    .info-box { 
+      background: #e7f3ff; border-left: 4px solid #2196F3; 
+      padding: 12px 16px; margin-bottom: 20px; border-radius: 4px; 
+      font-size: 13px; color: #333; 
+    }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; font-size: 14px; }
+    .label-with-hint { display: flex; justify-content: space-between; align-items: center; }
+    .hint { font-size: 12px; color: #999; font-weight: normal; }
+    input, textarea, select { 
+      width: 100%; padding: 12px; border: 2px solid #e0e0e0; 
+      border-radius: 8px; font-size: 14px; font-family: inherit; 
+      transition: border-color 0.3s;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; }
+    textarea { resize: vertical; min-height: 120px; }
+    select { cursor: pointer; background: white; }
+    .detected-info {
+      margin-top: 10px; padding: 10px; background: #f0f8ff;
+      border-radius: 6px; font-size: 13px; display: none;
+    }
+    .detected-info.show { display: block; }
+    .detected-info .type-badge {
+      display: inline-block; padding: 2px 8px; background: #28a745;
+      color: white; border-radius: 12px; font-size: 12px; margin-right: 8px;
+    }
+    button.primary { 
+      width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      color: white; border: none; border-radius: 8px; font-size: 16px; 
+      font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4); }
+    button.primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .result { 
+      margin-top: 20px; padding: 15px; background: #f8f9fa; 
+      border-radius: 8px; display: none; 
+    }
+    .result.show { display: block; }
+    .result.error { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .result-text { word-break: break-all; color: #333; white-space: pre-wrap; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; }
+    .cookie-saved { display: inline-block; margin-left: 10px; padding: 4px 10px; background: #28a745; color: white; border-radius: 12px; font-size: 12px; font-weight: normal; }
+    .clear-cookie { margin-left: 10px; padding: 2px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; }
+    
+    .loading-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: none; align-items: center; justify-content: center; }
+    .loading-modal.show { display: flex; }
+    .loading-content { background: white; padding: 30px 40px; border-radius: 12px; min-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .loading-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
+    .loading-text { font-size: 14px; color: #666; min-height: 20px; }
+    .spinner { width: 36px; height: 36px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .progress-container { width: 100%; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; margin-top: 15px; }
+    .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.2s; }
+    .progress-text { font-size: 13px; color: #666; margin-top: 8px; font-weight: 500; }
+    
+    .result-dialog-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; display: none; align-items: center; justify-content: center; }
+    .result-dialog-overlay.show { display: flex; }
+    .result-dialog { background: white; padding: 30px; border-radius: 12px; width: 80%; max-width: 800px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .result-dialog-title { font-size: 20px; font-weight: 600; margin-bottom: 15px; }
+    .result-dialog-content { flex: 1; overflow: auto; background: #f5f5f5; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; margin-bottom: 20px; }
+    .result-dialog-content pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+    .result-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .result-dialog-actions button { padding: 8px 20px; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
+    .result-dialog-actions button:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ 123云盘秒传JSON生成器</h1>
+      <p class="subtitle">支持 123网盘、夸克网盘、天翼云盘 - 智能识别网盘类型，快速生成秒传JSON</p>
+    </header>
+    
+    <div class="info-box">
+      💡 <strong>使用提示：</strong>粘贴完整分享文本自动解析，或手动选择网盘类型并填写信息。配合 <a href="https://github.com/Bao-qing/123FastLink" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: underline;">123FastLink</a> 客户端使用更佳。<br>
+      解析失败、分享文件过多、文件无法分享时，推荐使用功能更强大的 <a href="https://github.com/ekxs0109/123link" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: underline;">浏览器脚本</a>。
+    </div>
+
+    <main>
+      <div class="form-group">
+        <label>快速解析（粘贴完整分享文本）</label>
+        <textarea id="share-text" placeholder="粘贴完整的分享文本，例如：
+
+我用夸克网盘分享了「文件名」
+链接：https://pan.quark.cn/s/xxxxx
+提取码：xxxx
+
+或者直接粘贴链接"></textarea>
+        <div id="detected-info" class="detected-info"></div>
+      </div>
+      <div class="form-group">
+        <label>网盘类型</label>
+        <select id="pan-type" onchange="onPanTypeChange()">
+          <option value="">-- 请选择网盘类型 --</option>
+          <option value="123">123网盘</option>
+          <option value="189">189网盘</option>
+          <option value="quark">夸克网盘</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>分享链接</label>
+        <input type="text" id="share-url" placeholder="例如：https://pan.quark.cn/s/xxxxx">
+      </div>
+      <div class="form-group">
+        <label>提取码（选填）</label>
+        <input type="text" id="share-password" placeholder="如有提取码请输入">
+      </div>
+      <div class="form-group" id="cookie-group" style="display:none;">
+        <div class="label-with-hint">
+          <label>夸克网盘Cookie（必填）</label>
+          <span id="cookie-saved-badge" class="cookie-saved" style="display:none;">✓ 已保存</span>
+        </div>
+        <span class="hint">
+          <button class="clear-cookie" id="clear-cookie-btn" style="display:none;" onclick="clearCookie()">清除</button>
+          <a href="#" onclick="showCookieHelp(); return false;" style="color: #667eea; text-decoration: none;">如何获取?</a>
+        </span>
+        <textarea id="quark-cookie" rows="3" placeholder="登录 https://pan.quark.cn，按F12打开开发者工具，在Network标签中找到任意请求的Cookie"></textarea>
+      </div>
+      <button class="primary" id="generate-btn" onclick="generate()">生成秒传JSON</button>
+      <div id="result" class="result"></div>
+    </main>
+    
+    <footer style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
+      <p>开源项目 <a href="https://github.com/ekxs0109/123fastlink-cf" target="_blank" rel="noopener noreferrer" style="color: #667eea;">GitHub</a></p>
+      <p style="margin-top: 8px;">支持 123云盘、夸克网盘、天翼云盘秒传 | 完全免费</p>
+    </footer>
+  </div>
+
+  <div id="loading-modal" class="loading-modal">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <div id="loading-title" class="loading-title">正在处理...</div>
+      <div id="loading-text" class="loading-text">请稍候...</div>
+      <div class="progress-container">
+          <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="progress-text" class="progress-text">0%</div>
+    </div>
+  </div>
+
+  <div id="result-dialog" class="result-dialog-overlay">
+    <div class="result-dialog">
+      <div id="result-dialog-title" class="result-dialog-title">秒传JSON生成成功</div>
+      <div id="common-path-checkbox-container" style="margin-bottom: 15px;"></div>
+      <div class="result-dialog-content"><pre id="result-json-preview"></pre></div>
+      <div class="result-dialog-actions">
+        <button id="result-copy-btn" style="background: #667eea;">复制JSON</button>
+        <button id="result-download-btn" style="background: #28a745;">下载文件</button>
+        <button id="result-close-btn" style="background: #999;">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Utils ---
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => { clearTimeout(timeout); func(...args); };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function detectPanType(text) {
+      try { text = decodeURIComponent(text); } catch (e) { console.log('URL decode failed'); }
+      const detections = {
+        '123': { urlRegex: /https?:\/\/www\.(123pan\.com|123865\.com|123684\.com|123912\.com|123pan\.cn)\/s\/([a-zA-Z0-9\-]+)/, pwdRegex: /(?:提取码|密码|访问码)[：:\s]*([a-zA-Z0-9]{4})/, name: '123网盘' },
+        '189': { urlRegex: /https?:\/\/cloud\.189\.cn\/(?:t\/([a-zA-Z0-9]+)|web\/share\?code=([a-zA-Z0-9]+))/, pwdRegex: /(?:提取码|访问码)[：:\s]*([a-zA-Z0-9]+)/, name: '189网盘' },
+        'quark': { urlRegex: /https?:\/\/pan\.quark\.cn\/s\/([a-zA-Z0-9]+)/, pwdRegex: /(?:提取码|密码)[：:\s]*([a-zA-Z0-9]+)/, name: '夸克网盘' }
+      };
+      for (const [type, config] of Object.entries(detections)) {
+        const urlMatch = text.match(config.urlRegex);
+        if (urlMatch) {
+          let password = (text.match(/[?&]pwd=([a-zA-Z0-9]+)/) || text.match(config.pwdRegex) || [])[1] || '';
+          return { type, name: config.name, url: urlMatch[0], password };
+        }
+      }
+      return null;
+    }
+
+    // --- UI Handlers ---
+    function autoParse() {
+      const text = document.getElementById('share-text').value.trim();
+      const detectedDiv = document.getElementById('detected-info');
+      const detected = detectPanType(text);
+      if (detected) {
+        document.getElementById('pan-type').value = detected.type;
+        document.getElementById('share-url').value = detected.url;
+        document.getElementById('share-password').value = detected.password;
+        detectedDiv.innerHTML = `<span class="type-badge">✓ 已识别</span> ${detected.name}`;
+        detectedDiv.classList.add('show');
+        onPanTypeChange();
+      } else {
+        detectedDiv.innerHTML = '<span style="color: #dc3545;">❌ 未识别到有效的网盘链接</span>';
+        detectedDiv.classList.add('show');
+      }
+    }
+    function onPanTypeChange() {
+      const type = document.getElementById('pan-type').value;
+      document.getElementById('cookie-group').style.display = (type === 'quark') ? 'block' : 'none';
+      if (type === 'quark') loadSavedCookie();
+    }
+    function saveCookie(cookie) { localStorage.setItem('quark_cookie', cookie); showCookieSavedBadge(); }
+    function loadSavedCookie() {
+      const saved = localStorage.getItem('quark_cookie');
+      if (saved) { document.getElementById('quark-cookie').value = saved; showCookieSavedBadge(); }
+    }
+    function showCookieSavedBadge() {
+      document.getElementById('cookie-saved-badge').style.display = 'inline-block';
+      document.getElementById('clear-cookie-btn').style.display = 'inline-block';
+    }
+    function clearCookie() {
+      if (confirm('确定要清除保存的Cookie吗？')) {
+        localStorage.removeItem('quark_cookie');
+        document.getElementById('quark-cookie').value = '';
+        document.getElementById('cookie-saved-badge').style.display = 'none';
+        document.getElementById('clear-cookie-btn').style.display = 'none';
+      }
+    }
+    function showCookieHelp() { alert('获取夸克Cookie步骤：\n\n1. 打开 pan.quark.cn 并登录\n2. 按 F12 打开开发者工具\n3. 切换到 Network (网络) 标签\n4. 刷新页面\n5. 找到任意请求，在 Request Headers 中找到并复制完整的 Cookie 值'); }
+
+    // --- Modals & Dialogs ---
+    function showLoadingModal(title) {
+      document.getElementById('loading-title').textContent = title || '正在处理...';
+      document.getElementById('loading-text').textContent = '请稍候...';
+      document.getElementById('progress-bar').style.width = '0%';
+      document.getElementById('progress-text').textContent = '0%';
+      document.getElementById('loading-modal').classList.add('show');
+    }
+    function hideLoadingModal() { document.getElementById('loading-modal').classList.remove('show'); }
+    function updateProgress(processed, total, phase) {
+        const percent = total > 0 ? Math.min(100, (processed / total) * 100) : 0;
+        document.getElementById('loading-title').textContent = `正在${phase}...`;
+        document.getElementById('loading-text').textContent = `已处理 ${processed} / ${total}`;
+        document.getElementById('progress-bar').style.width = `${percent}%`;
+        document.getElementById('progress-text').textContent = `${percent.toFixed(1)}%`;
+    }
+    function updateScanProgress(count, phase) {
+        document.getElementById('loading-title').textContent = `正在${phase}...`;
+        document.getElementById('loading-text').textContent = `已发现 ${count} 个文件`;
+        document.getElementById('progress-bar').style.width = '0%';
+        document.getElementById('progress-text').textContent = '';
+    }
+    function showResultDialog(json) {
+        let currentJson = { ...json };
+        const originalCommonPath = json.commonPath || "";
+        const shareTitle = originalCommonPath.replace(/\/$/, '');
+
+        const checkboxContainer = document.getElementById('common-path-checkbox-container');
+
+        if (shareTitle) {
+            checkboxContainer.innerHTML = `
+                <div style="padding: 10px; background: #f0f7ff; border-radius: 4px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; font-size: 14px; color: #333;">
+                        <input type="checkbox" id="common-path-checkbox" checked style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                        <span>设置 commonPath 为分享标题: <strong>${shareTitle}</strong></span>
+                    </label>
+                </div>`;
+            
+            const checkbox = document.getElementById('common-path-checkbox');
+            checkbox.onchange = () => {
+                currentJson.commonPath = checkbox.checked ? originalCommonPath : "";
+                updateJsonDisplay();
+            };
+        } else {
+            checkboxContainer.innerHTML = '';
+        }
+
+        const previewEl = document.getElementById('result-json-preview');
+        const updateJsonDisplay = () => {
+            const jsonString = JSON.stringify(currentJson, null, 2);
+            previewEl.textContent = jsonString;
+            return jsonString;
+        };
+
+        document.getElementById('result-dialog-title').textContent = `生成成功: ${shareTitle || '无标题'}`;
+        document.getElementById('result-dialog').classList.add('show');
+        updateJsonDisplay();
+
+        document.getElementById('result-copy-btn').onclick = () => {
+            navigator.clipboard.writeText(updateJsonDisplay());
+            showToast('✅ 已复制到剪贴板');
+        };
+
+        document.getElementById('result-download-btn').onclick = () => {
+            const blob = new Blob([updateJsonDisplay()], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${shareTitle || '123link'}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        document.getElementById('result-close-btn').onclick = () => {
+            document.getElementById('result-dialog').classList.remove('show');
+        };
+    }
+    function showResult(el, msg, type) {
+      el.className = 'result show ' + type;
+      el.innerHTML = `<div class="result-text">${msg}</div>`;
+    }
+    function showToast(message) {
+      const toast = document.createElement("div");
+      toast.textContent = message;
+      toast.style.cssText = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.75); color:white; padding:10px 20px; border-radius:20px; font-size:14px; z-index:10001; transition:all 0.3s; opacity:0;`;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '1'; toast.style.top = '40px'; }, 10);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.top = '20px'; setTimeout(() => toast.remove(), 300); }, 2500);
+    }
+
+    // --- Main Logic ---
+    function generate() {
+      const panType = document.getElementById('pan-type').value;
+      const shareUrl = document.getElementById('share-url').value.trim();
+      const sharePassword = document.getElementById('share-password').value.trim();
+      const cookie = document.getElementById('quark-cookie').value.trim();
+      const btn = document.getElementById('generate-btn');
+      const resultEl = document.getElementById('result');
+      resultEl.className = 'result';
+      
+      if (!panType || !shareUrl) return showResult(resultEl, '请选择网盘类型并输入分享链接', 'error');
+      if (panType === 'quark' && !cookie) return showResult(resultEl, '夸克网盘需要提供Cookie', 'error');
+
+      btn.disabled = true;
+      btn.textContent = '生成中...';
+      showLoadingModal('正在连接...');
+
+      const params = new URLSearchParams({ panType, shareUrl, sharePassword, cookie });
+      const es = new EventSource(`/api/stream?${params}`);
+
+      const cleanup = () => {
+        es.close();
+        btn.disabled = false;
+        btn.textContent = '生成秒传JSON';
+      };
+
+      const recommendation = `<br><br><b>提示：</b>如果生成失败或分享文件过多，推荐使用功能更强大的 <a href="https://github.com/ekxs0109/123link" target="_blank" rel="noopener noreferrer" style="color:#667eea">浏览器脚本</a>。`;
+
+      es.onmessage = function(event) {
+        const { type, data } = JSON.parse(event.data);
+        switch(type) {
+          case 'phase':
+            document.getElementById('loading-title').textContent = data.message;
+            break;
+          case 'scan':
+            updateScanProgress(data.count, '扫描文件');
+            break;
+          case 'progress':
+            updateProgress(data.processed, data.total, '获取MD5');
+            break;
+          case 'result':
+            hideLoadingModal();
+            showResultDialog(data.rapidTransferJson);
+            cleanup();
+            break;
+          case 'error':
+            hideLoadingModal();
+            showResult(resultEl, `生成失败: ${data.message}${recommendation}`, 'error');
+            cleanup();
+            break;
+        }
+      };
+
+      es.onerror = function(err) {
+        console.error('EventSource failed:', err);
+        hideLoadingModal();
+        showResult(resultEl, `连接服务器失败或超时${recommendation}`, 'error');
+        cleanup();
+      };
+    }
+
+    // --- Init ---
+    document.addEventListener('DOMContentLoaded', function() {
+      const shareTextArea = document.getElementById('share-text');
+      const debouncedAutoParse = debounce(() => { if (shareTextArea.value.trim()) autoParse(); }, 500);
+      shareTextArea.addEventListener('input', debouncedAutoParse);
+      shareTextArea.addEventListener('paste', () => setTimeout(debouncedAutoParse, 50));
+      document.getElementById('quark-cookie').addEventListener('blur', function() { if (this.value.trim()) saveCookie(this.value.trim()); });
+    });
+  </script>
+</body>
+</html>
